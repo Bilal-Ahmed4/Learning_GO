@@ -13,11 +13,22 @@ import (
 
 	"github.com/Bilal-Ahmed4/student-api/internal/config"
 	"github.com/Bilal-Ahmed4/student-api/internal/http/handlers/student"
+	"github.com/Bilal-Ahmed4/student-api/internal/storage/sqlite"
 )
 
 func main() {
 	//we have to load the config first
+	
 	config := config.MustLoad()
+	
+
+	//database
+	_, err := sqlite.New(config)
+	if err!=nil{
+		log.Fatal(err)
+	}
+
+	slog.Info("storage intialized",slog.String("env",config.Env),slog.String("version","1.0.0"))
 
 	//setup router
 	router := http.NewServeMux()
