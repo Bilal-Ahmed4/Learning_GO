@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/Bilal-Ahmed4/student-api/internal/config"
+	"github.com/Bilal-Ahmed4/student-api/internal/http/handlers/student"
 )
 
 func main() {
@@ -21,9 +22,7 @@ func main() {
 	//setup router
 	router := http.NewServeMux()
 
-	router.HandleFunc("GET /api/students", func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("welcome"))
-	})
+	router.Handle("POST /api/students", student.New())
 	// setup the server
 
 	server := http.Server{
@@ -50,12 +49,12 @@ func main() {
 	slog.Info("Shutting down the server")
 	// if the shutdown doesnt happened for some reason so we give a time to the server shutdown using the context
 	// if not shutdown in 5 sec than throw error server.shutdown expect an var of type of context
-	ctx, cancel := context.WithTimeout(context.Background(),5*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	if err:=server.Shutdown((ctx)); err!=nil{
-		slog.Info("failed to shutdown the server",slog.String("error",err.Error()))
+	if err := server.Shutdown((ctx)); err != nil {
+		slog.Info("failed to shutdown the server", slog.String("error", err.Error()))
 	}
 	slog.Info("Server Shutdown succesfully")
-	
+
 }
