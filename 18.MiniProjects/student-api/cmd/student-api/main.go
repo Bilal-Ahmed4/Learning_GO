@@ -18,26 +18,26 @@ import (
 
 func main() {
 	//we have to load the config first
-	
+
 	config := config.MustLoad()
-	
 
 	//database
-	_, err := sqlite.New(config)
-	if err!=nil{
+	storage, err := sqlite.New(config)
+	if err != nil {
 		log.Fatal(err)
 	}
 
-	slog.Info("storage intialized",slog.String("env",config.Env),slog.String("version","1.0.0"))
+	slog.Info("storage intialized", slog.String("env", config.Env), slog.String("version", "1.0.0"))
 
 	//setup router
 	router := http.NewServeMux()
 
-	router.Handle("POST /api/students", student.New())
+	router.HandleFunc("POST /api/students", student.New(storage))
+	router.HandleFunc("GET /api/students/{id}", student.GetById(storage))
 	// setup the server
 
 	server := http.Server{
-		Addr:    config.Addr,
+		Addr:    config.Addr, 
 		Handler: router,
 	}
 
