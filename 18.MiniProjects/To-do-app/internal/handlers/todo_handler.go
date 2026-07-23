@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strconv"
 
 	"github.com/Bilal-Ahmed4/to-do-app/internal/repository"
 	"github.com/Bilal-Ahmed4/to-do-app/internal/response"
@@ -46,5 +47,25 @@ func GetTodos(pool *pgxpool.Pool) http.HandlerFunc {
 
 		response.WriteJson(w, http.StatusFound, todos)
 
+	}
+}
+
+func GetTodosById(pool *pgxpool.Pool) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		idStr := r.PathValue("id")
+
+		id, err := strconv.Atoi(idStr)
+		if err != nil {
+			response.WriteJson(w, http.StatusBadRequest, response.GeneralError(fmt.Errorf("Unable to convert the id of todo %s", err)))
+			return
+		}
+
+		todo, err := repository.GetTodoById(pool, id)
+		if err != nil {
+			response.WriteJson(w, http.StatusBadRequest, fmt.Errorf("Unable to get the todo %s", err))
+			return
+		}
+
+		response.WriteJson(w, http.StatusFound, todo)
 	}
 }

@@ -65,3 +65,27 @@ func GetTodos(pool *pgxpool.Pool) ([]*models.Todo, error) {
 	}
 	return todos, nil
 }
+
+func GetTodoById(pool *pgxpool.Pool, id int) (*models.Todo, error) {
+	ctx := context.Background()
+	ctx, cancle := context.WithTimeout(ctx, 5*time.Second)
+	defer cancle()
+
+	var query string = `SELECT * FROM todos
+					  WHERE id=$1;`
+
+	var todo models.Todo
+	err := pool.QueryRow(ctx, query, id).Scan(
+		&todo.ID,
+		&todo.Title,
+		&todo.Completed,
+		&todo.CreatedAt,
+		&todo.UpdatedAt,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return &todo, nil
+
+}
