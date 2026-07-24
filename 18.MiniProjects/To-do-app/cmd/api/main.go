@@ -44,12 +44,14 @@ func main() {
 	// 	})
 	// })
 
-	router.HandleFunc("POST /todos", handlers.CreateNewTodo(pool))
+	router.HandleFunc("POST /todos", handlers.CreateNewTodoHandler(pool))
 
 	// create api to fetch all the todos
-	router.HandleFunc("GET /todos", handlers.GetTodos(pool))
+	router.HandleFunc("GET /todos", handlers.GetTodosHandler(pool))
 
-	router.HandleFunc("GET /todos/{id}", handlers.GetTodosById(pool))
+	router.HandleFunc("GET /todos/{id}", handlers.GetTodosByIdHandler(pool))
+
+	router.HandleFunc("PUT /todos/{id}", handlers.UpdateTodoHandler(pool))
 
 	// http.ListenAndServe(":8080", router) // here you will provide the port and the mux object
 	// we can also use an alternative for this the above basically auto create the &http.Server and
