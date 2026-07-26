@@ -132,3 +132,23 @@ func UpdateTodoHandler(pool *pgxpool.Pool) http.HandlerFunc {
 	}
 
 }
+
+func DeleteTodoHandler(pool *pgxpool.Pool) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		idStr := r.PathValue("id")
+
+		id, err := strconv.Atoi(idStr)
+		if err != nil {
+			response.WriteJson(w, http.StatusBadRequest, response.GeneralError(fmt.Errorf("Cannot convert the id from string to int %s", err)))
+			return
+		}
+
+		err = repository.DeleteTodo(pool, id)
+		if err != nil {
+			response.WriteJson(w, http.StatusNotFound, response.GeneralError(err))
+			return
+		}
+
+		response.WriteJson(w, http.StatusOK, map[string]string{"message": "todo deleted"})
+	}
+}

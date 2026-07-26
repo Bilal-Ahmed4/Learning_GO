@@ -11,6 +11,7 @@ import (
 	_ "github.com/lib/pq"
 )
 
+// migrate create -ext sql -dir migrations -seq create_todos_table
 func writeJSON(w http.ResponseWriter, status int, data interface{}) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
@@ -52,6 +53,8 @@ func main() {
 	router.HandleFunc("GET /todos/{id}", handlers.GetTodosByIdHandler(pool))
 
 	router.HandleFunc("PUT /todos/{id}", handlers.UpdateTodoHandler(pool))
+
+	router.HandleFunc("DELETE /todos/{id}", handlers.DeleteTodoHandler(pool))
 
 	// http.ListenAndServe(":8080", router) // here you will provide the port and the mux object
 	// we can also use an alternative for this the above basically auto create the &http.Server and
