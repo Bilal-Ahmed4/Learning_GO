@@ -20,8 +20,8 @@ type todo struct {
 }
 
 type UpdateTodo struct {
-	Title     string `json: "title"`
-	Completed *bool  `json :"completed"`
+	Title     *string `json: "title"`
+	Completed *bool   `json :"completed"`
 }
 
 func CreateNewTodoHandler(pool *pgxpool.Pool) http.HandlerFunc {
@@ -93,13 +93,31 @@ func UpdateTodoHandler(pool *pgxpool.Pool) http.HandlerFunc {
 			response.WriteJson(w, http.StatusBadRequest, response.GeneralError(fmt.Errorf("unable to decode the body %s", err)))
 		}
 
+		if updateTodo.Title == nil && updateTodo.Completed == nil {
+			response.WriteJson(w, http.StatusBadRequest, response.GeneralError(fmt.Errorf("Provide at least one value to update")))
+			return
+		}
+
+		existingTodo, err := repository.GetTodoById(pool, id)
+		if err != nil {
+			response.WriteJson(w, http.StatusBadRequest, response.GeneralError(fmt.Errorf("The todo of this id doesnt exists")))
+			return
+		}
+
+		var title string
+		title = existingTodo.Title
+		if updateTodo.Title != nil {
+			title = *updateTodo.Title
+		}
+
 		//now we will update the todos
 		var completed bool
+		completed = existingTodo.Completed
 		if updateTodo.Completed != nil {
 			completed = *updateTodo.Completed
 		}
 
-		todo, err := repository.UpdateTodo(pool, updateTodo.Title, completed, id)
+		todo, err := repository.UpdateTodo(pool, title, completed, id)
 		if err != nil {
 			if err == pgx.ErrNoRows {
 				response.WriteJson(w, http.StatusBadRequest, response.GeneralError(fmt.Errorf("Error Todo not found%s", err)))
