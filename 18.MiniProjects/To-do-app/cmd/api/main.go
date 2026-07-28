@@ -58,6 +58,8 @@ func main() {
 
 	router.HandleFunc("POST /auth/registration", handlers.CreateUser(pool))
 
+	router.HandleFunc("POST /auth/login", handlers.LoginHandler(pool, cfg))
+
 	// http.ListenAndServe(":8080", router) // here you will provide the port and the mux object
 	// we can also use an alternative for this the above basically auto create the &http.Server and
 	// gin router.run use the http.ListenAndServe under the hood

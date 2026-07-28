@@ -10,6 +10,7 @@ import (
 type Config struct {
 	DatabaseURL string
 	Port        string
+	JWTSecret   string
 }
 
 func MustLoad() (*Config, error) {
@@ -21,6 +22,7 @@ func MustLoad() (*Config, error) {
 	var cfg *Config = &Config{
 		DatabaseURL: os.Getenv("DATABASE_URL"),
 		Port:        os.Getenv("PORT"),
+		JWTSecret:   os.Getenv("JWT_SECRET"),
 	}
 
 	return cfg, nil

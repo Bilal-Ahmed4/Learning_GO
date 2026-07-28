@@ -5,19 +5,21 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/Bilal-Ahmed4/to-do-app/internal/config"
 	"github.com/Bilal-Ahmed4/to-do-app/internal/models"
 	"github.com/Bilal-Ahmed4/to-do-app/internal/repository"
 	"github.com/Bilal-Ahmed4/to-do-app/internal/response"
 	"github.com/go-playground/validator/v10"
+	"github.com/golang-jwt/jwt"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"golang.org/x/crypto/bcrypt"
 )
 
 type RegistrationRequest struct {
-	Email    string
-	Password string
+	Email    string `json:"email" validate:"required,email"`
+	Password string `json:"password" validate:"required,min=6"`
 }
 
 type LoginRequest struct {
@@ -27,6 +29,7 @@ type LoginRequest struct {
 
 func CreateUser(pool *pgxpool.Pool) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		var validate = validator.New()
 		var user RegistrationRequest
 		err := json.NewDecoder(r.Body).Decode(&user)
 		if err != nil {
@@ -34,8 +37,8 @@ func CreateUser(pool *pgxpool.Pool) http.HandlerFunc {
 			return
 		}
 
-		if len(user.Password) < 6 {
-			response.WriteJson(w, http.StatusBadRequest, response.GeneralError(fmt.Errorf("Password must be at least 6 chars")))
+		if err := validate.Struct(user); err != nil {
+			http.Error(w, "validation failed: "+err.Error(), http.StatusBadRequest)
 			return
 		}
 		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
@@ -82,6 +85,34 @@ func LoginHandler(pool *pgxpool.Pool, cfg *config.Config) http.HandlerFunc {
 		}
 
 		//now we get the email from the db and match the password
+		user, err := repository.GetUserByEmail(pool, req.Email)
+		if err != nil {
+			response.WriteJson(w, http.StatusUnauthorized, response.GeneralError(fmt.Errorf("Email or password is wrong %s", err)))
+			return
+		}
 
+		err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Password))
+
+		if err != nil {
+			response.WriteJson(w, http.StatusUnauthorized, err.Error())
+			return
+		}
+
+		//now we have confirm the password now we will generate the jwt token
+		claims := jwt.MapClaims{
+			"user_id": user.ID,
+			"email":   user.Email,
+			"exp":     time.Now().Add(24 * time.Hour).Unix(),
+		}
+
+		//now we will generate the token object for the token string
+		tokenObj := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+		tokenString, err := tokenObj.SignedString([]byte(cfg.JWTSecret))
+		if err != nil {
+			response.WriteJson(w, http.StatusInternalServerError, err)
+			return
+		}
+
+		response.WriteJson(w, http.StatusOK, tokenString)
 	}
 }
