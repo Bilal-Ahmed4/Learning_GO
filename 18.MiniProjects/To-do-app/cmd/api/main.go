@@ -8,6 +8,7 @@ import (
 	"github.com/Bilal-Ahmed4/to-do-app/internal/config"
 	postgres "github.com/Bilal-Ahmed4/to-do-app/internal/database"
 	"github.com/Bilal-Ahmed4/to-do-app/internal/handlers"
+	"github.com/Bilal-Ahmed4/to-do-app/internal/middleware"
 	_ "github.com/lib/pq"
 )
 
@@ -59,6 +60,8 @@ func main() {
 	router.HandleFunc("POST /auth/registration", handlers.CreateUser(pool))
 
 	router.HandleFunc("POST /auth/login", handlers.LoginHandler(pool, cfg))
+
+	router.HandleFunc("/test", middleware.AuthMiddleware(cfg, handlers.TestHandler()))
 
 	// http.ListenAndServe(":8080", router) // here you will provide the port and the mux object
 	// we can also use an alternative for this the above basically auto create the &http.Server and

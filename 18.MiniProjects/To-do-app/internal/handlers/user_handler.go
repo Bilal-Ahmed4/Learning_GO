@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/Bilal-Ahmed4/to-do-app/internal/config"
+	"github.com/Bilal-Ahmed4/to-do-app/internal/middleware"
 	"github.com/Bilal-Ahmed4/to-do-app/internal/models"
 	"github.com/Bilal-Ahmed4/to-do-app/internal/repository"
 	"github.com/Bilal-Ahmed4/to-do-app/internal/response"
@@ -117,4 +118,19 @@ func LoginHandler(pool *pgxpool.Pool, cfg *config.Config) http.HandlerFunc {
 	}
 }
 
-//Test handler to check whether the middleware is working or not
+// Test handler to check whether the middleware is working or not
+func TestHandler() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		userId, ok := r.Context().Value(middleware.UserIDKey).(string)
+		if !ok {
+			response.WriteJson(w, http.StatusBadRequest, fmt.Errorf("invalid user"))
+			return
+		}
+
+		response.WriteJson(w, http.StatusOK, map[string]interface{}{
+			"message": "Hi how you are doing",
+			"user_id": userId,
+		})
+	}
+
+}

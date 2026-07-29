@@ -1,4 +1,4 @@
-package middlware
+package middleware
 
 import (
 	"context"
@@ -14,9 +14,9 @@ import (
 
 type contextKey string
 
-const userIDKey contextKey = "user_id"
+const UserIDKey contextKey = "user_id"
 
-func AuthMiddleware(cfg *config.Config) http.HandlerFunc {
+func AuthMiddleware(cfg *config.Config, next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		//now we will get the authHeader to get the token
 		authHeader := r.Header.Get("Authorization")
@@ -73,7 +73,7 @@ func AuthMiddleware(cfg *config.Config) http.HandlerFunc {
 		//tuck it inside the request so anyone downstream can grab it,
 		// and then hand control over to the next handler in the chain."
 
-		ctx := context.WithValue(r.Context(), userIDKey, userId)
+		ctx := context.WithValue(r.Context(), UserIDKey, userId)
 
 		next.ServeHTTP(w, r.WithContext(ctx))
 
