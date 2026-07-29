@@ -116,3 +116,5 @@ func LoginHandler(pool *pgxpool.Pool, cfg *config.Config) http.HandlerFunc {
 		response.WriteJson(w, http.StatusOK, tokenString)
 	}
 }
+
+//Test handler to check whether the middleware is working or not
