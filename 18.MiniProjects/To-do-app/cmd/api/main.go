@@ -1,9 +1,15 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
+	"errors"
 	"log"
 	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
 
 	"github.com/Bilal-Ahmed4/to-do-app/internal/config"
 	postgres "github.com/Bilal-Ahmed4/to-do-app/internal/database"
@@ -70,8 +76,33 @@ func main() {
 		Addr:    ":" + cfg.Port,
 		Handler: router,
 	}
-	err = server.ListenAndServe()
-	if err != nil {
-		log.Fatal("Unable to start server: ", err)
+
+	//graceful shutdown
+
+	go func() {
+		err := server.ListenAndServe()
+		if err != nil && !errors.Is(err, http.ErrServerClosed) {
+			log.Fatal("Unable to start server: ", err)
+		}
+	}()
+
+	quit := make(chan os.Signal, 1)
+
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+
+	<-quit // this is blocking and will only run when signal.notify write into the quit
+
+	log.Println("shutting down server...")
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+
+	defer cancel()
+
+	// 4. Ask the server to stop gracefully
+	if err := server.Shutdown(ctx); err != nil {
+		log.Fatalf("forced shutdown: %v", err)
 	}
+
+	log.Println("server stopped cleanly")
+
 }

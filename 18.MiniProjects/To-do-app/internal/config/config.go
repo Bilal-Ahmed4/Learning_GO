@@ -16,7 +16,7 @@ type Config struct {
 func MustLoad() (*Config, error) {
 	var err error = godotenv.Load()
 	if err != nil {
-		log.Fatal("failed to load env: %w", err)
+		log.Fatalf("failed to load env: %v", err)
 	}
 
 	var cfg *Config = &Config{
