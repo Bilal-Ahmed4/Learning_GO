@@ -1,4 +1,4 @@
-package sqlite
+git package sqlite
 
 import (
 	"database/sql"
